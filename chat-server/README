@@ -1,0 +1,11 @@
+To build:
+
+sbt clean package
+
+To run:
+cluster seed node (must be opened first):
+	sbt 'run-main dom.chatserver.ChatApp 2551'
+add new servers with:
+	sbt 'run-main dom.chatserver.ChatApp'
+
+edit resources/application.conf to change cluster seed nodes
