@@ -114,7 +114,7 @@ application = tornado.web.Application([
     (r'^/api/games', GameLister),
     (r'^/(.*\.html)$', HTMLHandler),
     (r'^/(.*)$', tornado.web.StaticFileHandler, {"path": "."})
-])
+], debug=True)
 
 if __name__ == '__main__':
     application.listen(8080)
