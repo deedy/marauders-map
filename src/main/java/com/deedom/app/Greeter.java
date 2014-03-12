@@ -1,8 +1,6 @@
 package com.deedom.app;
 
-import akka.actor.Props;
 import akka.actor.UntypedActor;
-import akka.actor.ActorRef;
 
 public class Greeter extends UntypedActor {
 

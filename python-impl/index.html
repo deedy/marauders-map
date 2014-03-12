@@ -1,0 +1,107 @@
+<!doctype html>
+<html class="no-js" lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Marauder's Map</title>
+    <link rel="stylesheet" href="css/foundation.css" />
+    <script src="js/vendor/modernizr.js"></script>
+    <script src="https://maps.googleapis.com/maps/api/js?v=3.exp&sensor=false"></script>
+    <script src="js/vendor/jquery.js"></script>
+    <style>
+      .full-height {display: table;}
+      .full-width {
+        width: 100%;
+        margin-left: auto;
+        margin-right: auto;
+        max-width: initial;
+      }
+    </style>
+    <script>
+      var ws;
+      var map;
+
+      function initializeMap() {
+        var mapOptions = {
+          zoom: 8,
+          center: new google.maps.LatLng(-34.397, 150.644)
+        };
+        map = new google.maps.Map(
+          document.getElementById('map_canvas'),
+          mapOptions
+        );
+      }
+
+      function populateGames(callback) {
+        $.getJSON("api/games", function(data) {
+          var games = data["games"];
+          var options = $("#game_selector");
+          options.empty();
+          $.each(games, function() {
+            options.append($("<option />").text(this));
+          });
+          options.change(function () {
+            changeGame(options.val());
+          });
+          callback(options);
+        });
+      }
+
+      function changeGame(game_id) {
+        if (ws != null) {
+          ws.close();
+        }
+        ws = new WebSocket("ws://localhost:8080/websockets/" + game_id);
+        ws.onmessage = function (evt) {
+          handleMessage(evt.data);
+        }
+        google.maps.event.addListener(map, 'click', function(event) {
+          sendMessage(event.latLng, ws);
+        });
+      }
+
+      function sendMessage(loc, socket) {
+        console.log("sending message: " + loc.toString());
+        socket.send(loc);
+      }
+
+      function handleMessage(input) {
+        console.log("got message: " + input)
+        ll = input.match(/-?\d*\.\d*/g);
+        loc = new google.maps.LatLng(parseFloat(ll[0]), parseFloat(ll[1]));
+        var marker = new google.maps.Marker({
+          position: loc, 
+          map: map
+        });
+      }
+
+      google.maps.event.addDomListener(window, 'load', initializeMap);
+      populateGames(function (options) {
+        if (options.length > 0) {
+          changeGame(options.val());
+        }
+      });
+    </script>
+  </head>
+  <body>
+    <div class="row full-height full-width">
+      <div class="large-10 column full-height" id="map_canvas"></div>
+      <div class="large-2 column full-height">
+        <label for="game_selector">Select a game</label>
+        <select id="game_selector" class="medium">
+        </select>
+        <label for="name_selector">Select a name</label>
+        <input type="text" id="name_selector" placeholder="Type your name here">
+        Click on the map to update your location!
+      </div>
+    </div>
+    <script src="js/foundation.min.js"></script>
+    <script>
+      $(document).foundation();
+      $(".full-height").height($(document).height());
+      window.onresize = function(event) {
+        $(".full-height").height($(document).height());
+      };
+    </script>
+  </body>
+</html>
