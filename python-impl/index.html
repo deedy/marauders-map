@@ -17,11 +17,20 @@
         margin-right: auto;
         max-width: initial;
       }
-    </style>
+      body {
+        background: #085a78
+      }    
+      </style>
+
     <script>
-          $(document).foundation();
+      $(document).foundation();
       var ws;
+      window.onbeforeunload = function() {
+        ws.onclose = function () {}; // disable onclose handler first
+        ws.close()
+      };
       var map;
+      var click_listener;
       var players = {};
 
       function initializeMap() {
@@ -77,14 +86,15 @@
 
       function changeGame(new_game_id) {
         game_id = new_game_id;
-        if (ws != null) {
+        if (!(typeof ws === 'undefined')) {
           ws.close();
         }
-        ws = new WebSocket("ws://localhost:8080/api/games/" + game_id + "/websocket");
+        ws = new WebSocket("ws:" + window.location.host + "/api/games/" + game_id + "/websocket");
         ws.onmessage = function (evt) {
           handleMessage(evt.data);
         }
-        google.maps.event.addListener(map, 'click', function(event) {
+        google.maps.event.removeListener(click_listener);
+        click_listener = google.maps.event.addListener(map, 'click', function(event) {
           sendMessage(event.latLng, ws);
         });
         clearPlayers();
@@ -111,10 +121,12 @@
           "lat" : loc.lat(),
           "lng" : loc.lng()
         };
+        console.log("sending: " + JSON.stringify(msg));
         socket.send(JSON.stringify(msg));
       }
 
       function handleMessage(input) {
+        console.log("received: " + input);
         data = JSON.parse(input)
         loc = new google.maps.LatLng(data["lat"], data["lng"]);
         updatePlayer(data["player_id"], loc);
@@ -132,12 +144,16 @@
     <div class="row full-height full-width">
       <div class="large-10 column full-height" id="map_canvas"></div>
       <div class="large-2 column full-height">
-        <label for="game_selector">Select a game</label>
+        <label for="game_selector">
+          <font color="white">Select a game</font>
+        </label>
         <select id="game_selector" class="medium">
         </select>
-        <label for="name_selector">Select a name</label>
+        <label for="name_selector">
+          <font color="white">Select a name</font>
+        </label>
         <input type="text" id="name_selector" placeholder="Type your name here">
-        Click on the map to update your location!
+        <font color="white">Click on the map to update your location!</font>
       </div>
     </div>
     <script>

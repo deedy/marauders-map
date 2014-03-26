@@ -116,8 +116,7 @@ class Game():
             location_update_message(
                 self.game_id,
                 player_id,
-                lat,
-                lng
+                lat, lng
             )
         )
 
@@ -126,7 +125,9 @@ class Game():
             "player_id" : pid,
             "lat" : player.lat,
             "lng" : player.lng
-        } for (pid, player) in self.players.iteritems()]
+        } for (pid, player) in 
+        self.players.iteritems() 
+        if player.has_pos]
 
 games = {'test1':Game('test1'), 'test2':Game('test2')}
 games['test1'].add_player('player1')
@@ -165,7 +166,6 @@ class GameSocketHandler(tornado.websocket.WebSocketHandler):
 
     def on_message(self, message):
         try:
-            print message
             data = json.loads(message)
             player_id = data["player_id"]
             lat = data["lat"]
@@ -177,11 +177,12 @@ class GameSocketHandler(tornado.websocket.WebSocketHandler):
             )
             print "location updated"
         except Exception as e:
-            print e
+            print e, "wut"
 
     def on_close(self):
         try:
             self.game.connections.remove(self)
+            print "socket closed"
         except Exception as e:
             print e
 
@@ -192,10 +193,15 @@ class GameLister(tornado.web.RequestHandler):
 
 class PlayerLister(tornado.web.RequestHandler):
     def get(self, game_id):
-        game = get_game(game_id)
-        msg = json.dumps({"players" : game.list_players()})
-        self.write(msg);
-        print "players listed"
+        try:
+            game = get_game(game_id)
+            msg = json.dumps({
+                "game_id": game_id,
+                "players" : game.list_players()
+            })
+            self.write(msg);
+        except:
+            self.write("{}");
 
 application = tornado.web.Application([
     (r'^/api/games/(.*)/websocket', GameSocketHandler),
