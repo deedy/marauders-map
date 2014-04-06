@@ -114,16 +114,13 @@ def delete_player(map_id, player_id):
 def delete_players(map_id):
 	map_key = "maps:%s" % map_id
 	player_set_key = map_key + ":players"
-	player_ids = get_player_ids(map_id):
+	player_ids = get_player_ids(map_id)
 	r.delete(player_set_key)
 	for player_id in player_ids:
 		player_key = player_set_key + (":%s" % player_id)
 		r.delete(player_key)			
 
-
-
-
-
-
-
-
+def update_location(map_id, player_id, lat, lng):
+	player_key = "maps:%s:players:%s" % (map_id, player_id)
+	update_dict = dict(zip(["lat", "lng"], [lat, lng]))
+	r.hmset(player_key, update_dict)

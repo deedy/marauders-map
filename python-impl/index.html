@@ -4,11 +4,14 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Marauder's Map</title>
+    <!-- load foundation stuff -->
     <link rel="stylesheet" href="css/foundation.css" />
     <script src="js/vendor/modernizr.js"></script>
+    <script src="js/vendor/jquery.js"></script>
+    <script src="js/foundation.min.js"></script>
+    <!-- load google maps stuff -->
     <script src="https://maps.googleapis.com/maps/api/js?v=3.exp&sensor=false"></script>
-        <script src="js/vendor/jquery.js"></script>
-        <script src="js/foundation.min.js"></script>
+    <!-- set the map window -->
     <style>
       .full-height {display: table;}
       .full-width {
@@ -20,140 +23,183 @@
       body {
         background: #085a78
       }    
-      </style>
+    </style>
 
     <script>
+      // foundate the document
       $(document).foundation();
-      var ws;
-      window.onbeforeunload = function() {
-        ws.onclose = function () {}; // disable onclose handler first
-        ws.close()
+
+      var globals = {
+        players : {},
+        player_list : [],
+        map_list : [],
+        current_player_id : -1,
+        current_map_id : -1,
+        socket : undefined,
+        atlas : undefined,
+        click_listener : undefined
       };
-      var map;
-      var click_listener;
-      var players = {};
+
+      function getPlayerList() {
+        var url = "maps/" + globals.current_map_id + "/players";
+        $.getJSON(url, function(players) {
+          var player_selector = $("#player_selector");
+          player_selector.empty();
+          globals.player_list = [];
+          globals.players = {};
+          $.each(players, function() {
+            var player_id = this["player_id"];
+            var player_name = this["player_name"];
+            player_selector.append(
+              $("<option />").text(player_name)
+            );
+            addPlayer(this);
+          });
+          player_selector.change(function () {
+            var player_index = document.getElementById('player_selector').selectedIndex;
+            changePlayer(globals.player_list[player_index]["player_id"]);
+          });
+          if (globals.current_player_id == -1) {
+            changePlayer(globals.player_list[0]["player_id"]);
+          }
+        });
+      }
+
+      function getMapList() {
+       $.getJSON("maps", function(data) {
+          var map_selector = $("#map_selector");
+          map_selector.empty();
+          globals.map_list = [];
+          $.each(data, function() {
+            var map_name = this["map_name"];
+            map_selector.append(
+              $("<option />").text(map_name)
+            );
+            globals.map_list.push(this);
+          });
+          map_selector.change(function () {
+            var map_index = document.getElementById('map_selector').selectedIndex;
+            changeMap(globals.map_list[map_index]["map_id"]);
+          });
+          if (globals.current_map_id == -1) {
+            changeMap(globals.map_list[0]["map_id"]);
+          }
+        });
+      }
+
+      window.onbeforeunload = function() {
+        globals.socket.onclose = function () {};
+        globals.socket.close();
+      };
 
       function initializeMap() {
+        // center the map on Ithaca, NY
         var mapOptions = {
-          zoom: 8,
-          center: new google.maps.LatLng(-34.397, 150.644)
+          zoom: 17,
+          center: new google.maps.LatLng(42.447909, -76.477998)
         };
-        map = new google.maps.Map(
+        globals.atlas = new google.maps.Map(
           document.getElementById('map_canvas'),
           mapOptions
         );
       }
 
-      function updatePlayer(player_id, location) {
-        if (players.hasOwnProperty(player_id)) {
-          players[player_id].setPosition(location);
-        } else {
-          var marker = new google.maps.Marker({
-            position: location,
-            map: map,
-            title: player_id
-          });
-          players[player_id] = marker;
+      function updatePlayer(player_info) {
+        var player_id = player_info["player_id"];
+        if (globals.players.hasOwnProperty(player_id)) {
+          var lat = player_info["lat"];
+          var lng = player_info["lng"];
+          var location = new google.maps.LatLng(lat, lng);
+          globals.players[player_id]["marker"].setPosition(location);
         }
+      }
+
+      function addPlayer(player_info) {
+        var player_id = player_info["player_id"];
+        var player_name = player_info["player_name"];
+        var lat = player_info["lat"];
+        var lng = player_info["lng"];
+        var location = new google.maps.LatLng(lat, lng);
+        var marker = new google.maps.Marker({
+          position: location,
+          map: globals.atlas,
+          title: player_name
+        });
+        globals.players[player_id] = player_info;
+        globals.players[player_id]["marker"] = marker;
+        globals.player_list.push(player_info);
       }
 
       function clearPlayers() {
-        for (var key in players) {
-          if (players.hasOwnProperty(key)) {
-            players[key].setMap(null);
-          }
-        }
-        players = {};
-      }
-
-      var game_id;
-      var player_id;
-
-      function populateGames(callback) {
-        $.getJSON("api/list_games", function(data) {
-          var games = data["games"];
-          var game_selector = $("#game_selector");
-          game_selector.empty();
-          $.each(games, function() {
-            game_selector.append($("<option />").text(this));
-          });
-          game_selector.change(function () {
-            changeGame(game_selector.val());
-          });
-          callback(game_selector);
+        $.each(globals.player_list, function () {
+          this["marker"].setMap(null);
         });
+        globals.players = {};
+        globals.player_list = [];
       }
 
-      function changeGame(new_game_id) {
-        game_id = new_game_id;
-        if (!(typeof ws === 'undefined')) {
-          ws.close();
+      function changeMap(new_map_id) {
+        globals.current_map_id = new_map_id;
+        if (!(typeof globals.socket === 'undefined')) {
+          globals.socket.close();
         }
-        ws = new WebSocket("ws:" + window.location.host + "/api/games/" + game_id + "/websocket");
-        ws.onmessage = function (evt) {
+        globals.socket = new WebSocket("ws:" + window.location.host + "/maps/" + new_map_id + "/channel");
+        globals.socket.onmessage = function (evt) {
           handleMessage(evt.data);
         }
-        google.maps.event.removeListener(click_listener);
-        click_listener = google.maps.event.addListener(map, 'click', function(event) {
-          sendMessage(event.latLng, ws);
+        google.maps.event.removeListener(globals.click_listener);
+        globals.click_listener = google.maps.event.addListener(globals.atlas, 'click', function(event) {
+          sendMessage(event.latLng);
         });
         clearPlayers();
-        initialMarkers();
+        getPlayerList();
       }
 
-      function initialMarkers() {
-        $.getJSON("api/games/" + game_id + "/list_players",
-          function(data) {
-            $.each(data["players"], function () {
-              var player_id = this["player_id"];
-              var lat = this["lat"];
-              var lng = this["lng"];
-              var loc = new google.maps.LatLng(lat, lng);
-              updatePlayer(player_id, loc);
-            });
-          });
+      function changePlayer(new_player_id) {
+        globals.current_player_id = new_player_id;
       }
 
-      function sendMessage(loc, socket) {
-        msg = {
-          "game_id" : game_id,
-          "player_id" : $("#name_selector").val(),
+      function sendMessage(loc) {
+        var url = "maps/" + globals.current_map_id + "/update_player";
+        var data = {
+          "player_id" : globals.current_player_id,
           "lat" : loc.lat(),
           "lng" : loc.lng()
         };
-        console.log("sending: " + JSON.stringify(msg));
-        socket.send(JSON.stringify(msg));
+        $.ajax({
+          type: "POST",
+          url: url,
+          data: data
+        });
       }
 
       function handleMessage(input) {
         console.log("received: " + input);
-        data = JSON.parse(input)
-        loc = new google.maps.LatLng(data["lat"], data["lng"]);
-        updatePlayer(data["player_id"], loc);
+        var data = JSON.parse(input);
+        updatePlayer(data);
       }
 
       google.maps.event.addDomListener(window, 'load', initializeMap);
-      populateGames(function (options) {
-        if (options.length > 0) {
-          changeGame(options.val());
-        }
-      });
+      getMapList();
     </script>
   </head>
   <body>
     <div class="row full-height full-width">
       <div class="large-10 column full-height" id="map_canvas"></div>
       <div class="large-2 column full-height">
-        <label for="game_selector">
-          <font color="white">Select a game</font>
+        <label for="map_selector">
+          <font color="white">Select a Map</font>
         </label>
-        <select id="game_selector" class="medium">
-        </select>
-        <label for="name_selector">
-          <font color="white">Select a name</font>
+        <select id="map_selector" class="medium"></select>
+        <a class="button" id="map_list_update_button">Update Maps</a>
+        <label for="player_selector">
+          <font color="white">Select a Player</font>
         </label>
-        <input type="text" id="name_selector" placeholder="Type your name here">
-        <font color="white">Click on the map to update your location!</font>
+        <select id="player_selector" class="medium"></select>
+        <a class="button" id="player_list_update_button">Update Players</a>
+        <div>
+          <font color="white">Click on the map to update your location!</font>
+        </div>
       </div>
     </div>
     <script>
@@ -161,6 +207,8 @@
       window.onresize = function(event) {
         $(".full-height").height($(document).height());
       };
+      $("#map_list_update_button").click(function () { getMapList(); });
+      $("#player_list_update_button").click(function () { getPlayerList(); });
     </script>
   </body>
 </html>
