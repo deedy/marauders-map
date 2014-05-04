@@ -6,16 +6,31 @@ import tornado.gen
 import json
 
 import tornadoredis
+from tornadoredis.pubsub import BaseSubscriber
 
 import database
 
+class MultiSub(BaseSubscriber):
+    def on_message(self, msg):
+        if not msg:
+            return
+        if msg.kind == 'message' and msg.body:
+            # Get the list of subscribers for this channel
+            subscribers = list(self.subscribers[msg.channel].keys())
+            for sub in subscribers:
+                sub.pubsub_message(msg)
+
 c = tornadoredis.Client()
 c.connect()
+sub_handler = MultiSub(c)
+
+d = tornadoredis.Client()
+d.connect()
 
 def publish_location_update(map_id, player_info):
     channel_name = "maps:%s:location_updates" % map_id
     to_send = json.dumps(player_info)
-    c.publish(channel_name, to_send)
+    d.publish(channel_name, to_send)
 
 class MapLister(tornado.web.RequestHandler):
     def get(self):
@@ -70,18 +85,18 @@ class LocationUpdater(tornado.web.RequestHandler):
             }
             publish_location_update(map_id, message)
 
-
 class MessageHandler(tornado.websocket.WebSocketHandler):
     def open(self, map_id):
         self.map_id = map_id
-        self.listen()
+        sub_handler.subscribe('maps:%s:location_updates' % self.map_id, self)
+        # self.listen()
 
-    @tornado.gen.engine
-    def listen(self):
-        self.client = tornadoredis.Client()
-        self.client.connect()
-        yield tornado.gen.Task(self.client.subscribe, 'maps:%s:location_updates' % self.map_id)
-        self.client.listen(self.pubsub_message)
+    # @tornado.gen.engine
+    # def listen(self):
+    #     self.client = tornadoredis.Client()
+    #     self.client.connect()
+    #     yield tornado.gen.Task(self.client.subscribe, 'maps:%s:location_updates' % self.map_id)
+    #     self.client.listen(self.pubsub_message)
 
     def pubsub_message(self, msg):
         if msg.kind == 'message':
@@ -93,9 +108,10 @@ class MessageHandler(tornado.websocket.WebSocketHandler):
         pass
 
     def on_close(self):
-        if self.client.subscribed:
-            self.client.unsubscribe('maps:%s:location_updates' % self.map_id)
-            self.client.disconnect()
+        # if self.client.subscribed:
+        #     self.client.unsubscribe('maps:%s:location_updates' % self.map_id)
+        #     self.client.disconnect()
+        sub_handler.unsubscribe('maps:%s:location_updates' % self.map_id, self)
 
 class HTMLHandler(tornado.web.RequestHandler):
     def get(self, filename):
@@ -116,6 +132,10 @@ application = tornado.web.Application([
 
 if __name__ == '__main__':
     http_server = tornado.httpserver.HTTPServer(application)
-    http_server.listen(8888)
+    import sys
+    port = 8888
+    if len(sys.argv) > 1:
+        port = int(sys.argv[1])
+    http_server.listen(port)
     print('Demo is runing at 0.0.0.0:8888\nQuit the demo with CONTROL-C')
     tornado.ioloop.IOLoop.instance().start()
