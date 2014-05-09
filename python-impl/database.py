@@ -118,7 +118,7 @@ def delete_players(map_id):
 	r.delete(player_set_key)
 	for player_id in player_ids:
 		player_key = player_set_key + (":%s" % player_id)
-		r.delete(player_key)			
+		r.delete(player_key)
 
 def update_location(map_id, player_id, lat, lng):
 	player_key = "maps:%s:players:%s" % (map_id, player_id)
