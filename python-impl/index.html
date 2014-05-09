@@ -97,7 +97,9 @@
         var mapOptions = {
           zoom: 17,
           // center: new google.maps.LatLng(42.447909, -76.477998)
-          center: new google.maps.LatLng(37.331703, -122.030240)
+          center: new google.maps.LatLng(37.331703, -122.030240),
+          mapTypeId: google.maps.MapTypeId.ROADMAP,
+          mapTypeControl: false
         };
         globals.atlas = new google.maps.Map(
           document.getElementById('map_canvas'),
@@ -122,11 +124,37 @@
         var lat = player_info["lat"];
         var lng = player_info["lng"];
         var location = new google.maps.LatLng(lat, lng);
+        var image32 = {
+          url: 'img/marker-32px.png',
+          size: new google.maps.Size(32, 32),
+          origin: new google.maps.Point(0,0),
+          anchor: new google.maps.Point(16, 16)
+        };
+        var image16 = {
+          url: 'img/marker-16px.png',
+          size: new google.maps.Size(16, 16),
+          origin: new google.maps.Point(0,0),
+          anchor: new google.maps.Point(8, 8)
+        };
+        var circle = circle = new google.maps.Circle({
+            map: globals.atlas,
+            clickable: false,
+            // metres
+            radius: 50,
+            fillColor: '#1B73FA',
+            fillOpacity: .1,
+            strokeColor: '#1B73FA',
+            strokeOpacity: .5,
+            strokeWeight: 1.0
+        });
         var marker = new google.maps.Marker({
           position: location,
           map: globals.atlas,
-          title: player_name
+          title: player_name,
+          icon: image16,
+          zIndex: 10
         });
+        circle.bindTo('center', marker, 'position');
         globals.players[player_id] = player_info;
         globals.players[player_id]["marker"] = marker;
         globals.player_list.push(player_info);
