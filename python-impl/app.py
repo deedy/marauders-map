@@ -208,6 +208,8 @@ class SignInForm(tornado.web.RequestHandler):
 
 class GetGame(tornado.web.RequestHandler):
     def get(self, map_id):
+        player_id = self.get_argument("player_id")
+        print player_id+"\n\n\n"
         all_maps = database.get_map_infos()
         map_details = database.get_map_info(map_id)
         tornadovars = {}
@@ -231,7 +233,7 @@ class GetGame(tornado.web.RequestHandler):
             player_info[i[0]]['locations'] = i[1]
             player_info[i[0]]['last_updated_string'] = pretty_date(int(i[1][0]['created']/1000))
         print player_info
-        self.render("index3.html", tornadovars=tornadovars, player_details=player_info, all_maps = all_maps)
+        self.render("index3.html", tornadovars=tornadovars, player_details=player_info, all_maps = all_maps, player_id = player_id)
 
     def post(self, map_id):
         player_id = self.get_argument("player_id")

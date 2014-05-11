@@ -228,6 +228,12 @@ footer {
   height: 100%;
   overflow: scroll;
 }
+
+.logged-in {
+  color: #fefefe;
+  font-size: 14px;
+  width: 200px;
+}
   </style>
     </head>
 
@@ -267,7 +273,11 @@ footer {
               {% end for %}
             </ul>
           </div>
-
+          <div class="btn-group logged-in">
+            {% if 'player_id' in globals() %}
+                <span class="logged-in">Logged in as  {{player_details[player_id]['info']['player_name']}}</span>
+            {% end if %}
+          </div>
           <div class="btn-group">
             <button type="button" class="sign-out btn btn-danger btn-sm" data-toggle="dropdown">
               <i class="fa fa-sign-out"></i>
@@ -386,7 +396,7 @@ footer {
 
             function initializeMap() {
               globals.current_map_id = {{tornadovars['map_id']}};
-              {% if 'player_id' in locals() %}
+              {% if 'player_id' in globals() %}
                 globals.current_player_id = {{player_id}}
               {% end if %}
 
