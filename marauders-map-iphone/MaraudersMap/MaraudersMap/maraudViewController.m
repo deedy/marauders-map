@@ -43,7 +43,7 @@
     if (nil == locationManager)
         [self startStandardUpdates];
 //    NSURL *url = [NSURL URLWithString:@"http://192.168.1.104:8888/index.html"];
-    NSURL *url = [NSURL URLWithString:@"http://10.33.225.34:8888/index.html"];
+    NSURL *url = [NSURL URLWithString:@"http://10.33.225.216:8888/"];
     NSURLRequest *request = [NSURLRequest requestWithURL:url];
     
     [self.myWebView loadRequest:request];
@@ -63,30 +63,30 @@
     NSTimeInterval howRecent = [eventDate timeIntervalSinceNow];
     if (abs(howRecent) < 15.0) {
         // If the event is recent, do something with it.
-//        NSLog(@"latitude %+.6f, longitude %+.6f\n",
-//              location.coordinate.latitude,
-//              location.coordinate.longitude);
-//        
-//        NSString *current_player_id = [self.myWebView stringByEvaluatingJavaScriptFromString:@"globals.current_map_id"];
-//        NSString *current_map_id = [self.myWebView stringByEvaluatingJavaScriptFromString:@"globals.current_player_id"];
-//        NSString *baseurl = [self.myWebView stringByEvaluatingJavaScriptFromString:@"window.location.origin"];
-//        NSLog(@"map_id: %@, player_id:%@", current_map_id, current_player_id);
-//        
-//        NSString *player_url = [NSString stringWithFormat:@"%@%@%@%@", baseurl, @"/maps/", current_map_id, @"/update_player"];
-//        
-//        NSLog(player_url);
-//        
-//        NSMutableURLRequest *request = [NSMutableURLRequest requestWithURL:[NSURL URLWithString:player_url]];
-//        
-//        NSString *lat = [[NSNumber numberWithDouble:location.coordinate.latitude] stringValue];
-//        NSString *lng = [[NSNumber numberWithDouble:location.coordinate.longitude] stringValue];
-//        
-//        NSString *params = [NSString stringWithFormat:@"player_id=%@&lat=%@&lng=%@", current_player_id, lat, lng];
-//        
-//        [request setHTTPMethod:@"POST"];
-//        [request setHTTPBody:[params dataUsingEncoding:NSUTF8StringEncoding]];
-//        [[NSURLConnection alloc] initWithRequest:request delegate:self];
-//        
+        NSLog(@"latitude %+.6f, longitude %+.6f\n",
+              location.coordinate.latitude,
+              location.coordinate.longitude);
+        
+        NSString *current_player_id = [self.myWebView stringByEvaluatingJavaScriptFromString:@"globals.current_map_id"];
+        NSString *current_map_id = [self.myWebView stringByEvaluatingJavaScriptFromString:@"globals.current_player_id"];
+        NSString *baseurl = [self.myWebView stringByEvaluatingJavaScriptFromString:@"window.location.origin"];
+        NSLog(@"map_id: %@, player_id:%@", current_map_id, current_player_id);
+        
+        NSString *player_url = [NSString stringWithFormat:@"%@%@", baseurl, @"/update_player"];
+        
+        NSLog(player_url);
+        
+        NSMutableURLRequest *request = [NSMutableURLRequest requestWithURL:[NSURL URLWithString:player_url]];
+        
+        NSString *lat = [[NSNumber numberWithDouble:location.coordinate.latitude] stringValue];
+        NSString *lng = [[NSNumber numberWithDouble:location.coordinate.longitude] stringValue];
+        
+        NSString *params = [NSString stringWithFormat:@"player_id=%@&lat=%@&lng=%@", current_player_id, lat, lng];
+        
+        [request setHTTPMethod:@"POST"];
+        [request setHTTPBody:[params dataUsingEncoding:NSUTF8StringEncoding]];
+        [[NSURLConnection alloc] initWithRequest:request delegate:self];
+        
     }
 }
 

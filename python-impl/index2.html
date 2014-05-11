@@ -1,0 +1,259 @@
+<!doctype html>
+<html class="no-js" lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Marauder's Map</title>
+    <!-- load foundation stuff -->
+    <link rel="stylesheet" href="css/foundation.css" />
+    <script src="js/vendor/modernizr.js"></script>
+    <script src="js/vendor/jquery.js"></script>
+    <script src="js/foundation.min.js"></script>
+    <!-- load google maps stuff -->
+    <script src="https://maps.googleapis.com/maps/api/js?v=3.exp&sensor=false"></script>
+    <!-- set the map window -->
+    <style>
+      .full-height {display: table;}
+      .full-width {
+        width: 100%;
+        margin-left: auto;
+        margin-right: auto;
+        max-width: initial;
+      }
+      body {
+        background: #085a78
+      }
+    </style>
+
+    <script>
+      // foundate the document
+      $(document).foundation();
+
+      var globals = {
+        players : {},
+        player_list : [],
+        map_list : [],
+        current_player_id : -1,
+        current_map_id : -1,
+        socket : undefined,
+        atlas : undefined,
+        click_listener : undefined,
+        tails: {}
+      };
+
+      function getPlayerList() {
+        var url = "maps/" + globals.current_map_id + "/players";
+        $.getJSON(url, function(players) {
+          var player_selector = $("#player_selector");
+          player_selector.empty();
+          globals.player_list = [];
+          globals.players = {};
+          $.each(players, function() {
+            var player_id = this["player_id"];
+            var player_name = this["player_name"];
+            player_selector.append(
+              $("<option />").text(player_name)
+            );
+            addPlayer(this);
+          });
+          player_selector.change(function () {
+            var player_index = document.getElementById('player_selector').selectedIndex;
+            changePlayer(globals.player_list[player_index]["player_id"]);
+          });
+          if (globals.current_player_id == -1) {
+            changePlayer(globals.player_list[0]["player_id"]);
+          }
+        });
+      }
+
+      function getMapList() {
+       $.getJSON("maps", function(data) {
+          var map_selector = $("#map_selector");
+          map_selector.empty();
+          globals.map_list = [];
+          $.each(data, function() {
+            var map_name = this["map_name"];
+            map_selector.append(
+              $("<option />").text(map_name)
+            );
+            globals.map_list.push(this);
+          });
+          map_selector.change(function () {
+            var map_index = document.getElementById('map_selector').selectedIndex;
+            changeMap(globals.map_list[map_index]["map_id"]);
+          });
+          if (globals.current_map_id == -1) {
+            changeMap(globals.map_list[0]["map_id"]);
+          }
+        });
+      }
+
+      window.onbeforeunload = function() {
+        globals.socket.onclose = function () {};
+        globals.socket.close();
+      };
+
+      function initializeMap() {
+        // center the map on Ithaca, NY
+        var mapOptions = {
+          zoom: 17,
+          // center: new google.maps.LatLng(42.447909, -76.477998)
+          center: new google.maps.LatLng(37.331703, -122.030240),
+          mapTypeId: google.maps.MapTypeId.ROADMAP,
+          mapTypeControl: false
+        };
+        globals.atlas = new google.maps.Map(
+          document.getElementById('map_canvas'),
+          mapOptions
+        );
+        getMapList();
+      }
+
+      function updatePlayer(player_info) {
+        var player_id = player_info["player_id"];
+        if (globals.players.hasOwnProperty(player_id)) {
+          var lat = player_info["lat"];
+          var lng = player_info["lng"];
+          var location = new google.maps.LatLng(lat, lng);
+          globals.players[player_id]["marker"].setPosition(location);
+        }
+      }
+
+      function addPlayer(player_info) {
+        var player_id = player_info["player_id"];
+        var player_name = player_info["player_name"];
+        var lat = player_info["lat"];
+        var lng = player_info["lng"];
+        var location = new google.maps.LatLng(lat, lng);
+        var image32 = {
+          url: 'img/marker-32px.png',
+          size: new google.maps.Size(32, 32),
+          origin: new google.maps.Point(0,0),
+          anchor: new google.maps.Point(16, 16)
+        };
+        var image16 = {
+          url: 'img/marker-16px.png',
+          size: new google.maps.Size(16, 16),
+          origin: new google.maps.Point(0,0),
+          anchor: new google.maps.Point(8, 8)
+        };
+        var circle = circle = new google.maps.Circle({
+            map: globals.atlas,
+            clickable: false,
+            // metres
+            radius: 50,
+            fillColor: '#1B73FA',
+            fillOpacity: .1,
+            strokeColor: '#1B73FA',
+            strokeOpacity: .5,
+            strokeWeight: 1.0
+        });
+        var marker = new google.maps.Marker({
+          position: location,
+          map: globals.atlas,
+          title: player_name,
+          icon: image16,
+          zIndex: 10
+        });
+        circle.bindTo('center', marker, 'position');
+        globals.players[player_id] = player_info;
+        globals.players[player_id]["marker"] = marker;
+        globals.player_list.push(player_info);
+      }
+
+      function clearPlayers() {
+        $.each(globals.player_list, function () {
+          this["marker"].setMap(null);
+        });
+        globals.players = {};
+        globals.player_list = [];
+      }
+
+      function changeMap(new_map_id) {
+        globals.current_map_id = new_map_id;
+        if (!(typeof globals.socket === 'undefined')) {
+          globals.socket.close();
+        }
+        globals.socket = new WebSocket("ws:" + window.location.host + "/maps/" + new_map_id + "/channel");
+        globals.socket.onmessage = function (evt) {
+          handleMessage(evt.data);
+        }
+        google.maps.event.removeListener(globals.click_listener);
+        globals.click_listener = google.maps.event.addListener(globals.atlas, 'click', function(event) {
+          sendMessage(event.latLng);
+        });
+        clearPlayers();
+        getPlayerList();
+      }
+
+      function changePlayer(new_player_id) {
+        globals.current_player_id = new_player_id;
+      }
+
+      function sendMessage(loc) {
+        var url = "maps/" + globals.current_map_id + "/update_player";
+        var data = {
+          "player_id" : globals.current_player_id,
+          "lat" : loc.lat(),
+          "lng" : loc.lng()
+        };
+        $.ajax({
+          type: "POST",
+          url: url,
+          data: data
+        });
+      }
+
+      function handleMessage(input) {
+        console.log("received: " + input);
+        var data = JSON.parse(input);
+
+        if (!(data['player_id'] in globals.tails)) {
+          globals.tails[data['player_id']] = [];
+        }
+        struct = {
+          timestamp: Date.now(),
+          lat: data.lat,
+          lng: data.lng
+        }
+        globals.tails[data['player_id']].push(struct);
+        console.log(globals.tails);
+
+        updatePlayer(data);
+      }
+
+      google.maps.event.addDomListener(window, 'load', initializeMap);
+
+
+    </script>
+  </head>
+  <body>
+    <div class="row full-height full-width">
+      <div class="large-10 column" id="test"></div>
+      <div class="large-10 column full-height" id="map_canvas"></div>
+      <div class="large-2 column full-height">
+        <label for="map_selector">
+          <font color="white">Select a Map</font>
+        </label>
+        <select id="map_selector" class="medium"></select>
+        <a class="button" id="map_list_update_button">Update Maps</a>
+        <label for="player_selector">
+          <font color="white">Select a Player</font>
+        </label>
+        <select id="player_selector" class="medium"></select>
+        <a class="button" id="player_list_update_button">Update Players</a>
+        <div>
+          <font color="white">Click on the map to update your location!</font>
+        </div>
+      </div>
+    </div>
+    <script>
+      $(".full-height").height($(document).height());
+      window.onresize = function(event) {
+        $(".full-height").height($(document).height());
+      };
+      $("#map_list_update_button").click(function () { getMapList(); });
+      $("#player_list_update_button").click(function () { getPlayerList(); });
+    </script>
+  </body>
+</html>
