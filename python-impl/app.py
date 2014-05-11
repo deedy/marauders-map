@@ -208,8 +208,12 @@ class SignInForm(tornado.web.RequestHandler):
 
 class GetGame(tornado.web.RequestHandler):
     def get(self, map_id):
-        player_id = self.get_argument("player_id")
-        print player_id+"\n\n\n"
+        player_id = -1
+        try:
+            player_id = self.get_argument("player_id")
+            print player_id+"\n\n\n"
+        except Exception:
+            pass
         all_maps = database.get_map_infos()
         map_details = database.get_map_info(map_id)
         tornadovars = {}

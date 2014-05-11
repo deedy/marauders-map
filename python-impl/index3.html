@@ -274,8 +274,10 @@ footer {
             </ul>
           </div>
           <div class="btn-group logged-in">
-            {% if 'player_id' in globals() %}
+            {% if not player_id == -1 %}
                 <span class="logged-in">Logged in as  {{player_details[player_id]['info']['player_name']}}</span>
+            {% else %}
+                <span class="logged-in">Not logged in</span>
             {% end if %}
           </div>
           <div class="btn-group">
@@ -396,7 +398,7 @@ footer {
 
             function initializeMap() {
               globals.current_map_id = {{tornadovars['map_id']}};
-              {% if 'player_id' in globals() %}
+              {% if not player_id == -1 %}
                 globals.current_player_id = {{player_id}}
               {% end if %}
 
