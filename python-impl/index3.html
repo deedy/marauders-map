@@ -268,7 +268,12 @@ footer {
             <ul class="dropdown-menu">
               {% for map in all_maps %}
                 {% if not str(map['map_id']) == tornadovars['map_id'] %}
-                  <li><a href="/maps/{{map['map_id']}}">{{map['map_name']}}</a></li>
+                  {% if player_id == -1 %}
+                      <li><a href="/maps/{{map['map_id']}}">{{map['map_name']}}</a></li>
+                  {% else %}
+                     <li><a href="/maps/{{map['map_id']}}?player_id={{player_id}}">{{map['map_name']}}</a></li>
+                  {% end if %}
+
                 {% end if %}
               {% end for %}
             </ul>
