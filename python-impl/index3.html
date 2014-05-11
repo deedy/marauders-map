@@ -386,8 +386,9 @@ footer {
 
             function initializeMap() {
               globals.current_map_id = {{tornadovars['map_id']}};
-              globals.current_player_id = {{player_id}}
-
+              {% if 'player_id' in locals() %}
+                globals.current_player_id = {{player_id}}
+              {% end if %}
 
               var mapOptions = {
                 zoom: 17,

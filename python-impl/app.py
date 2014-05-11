@@ -203,7 +203,7 @@ class SignInForm(tornado.web.RequestHandler):
             database.create_random_path(player_id)
         if map_status == "join":
             database.add_player_to_map(map_id, player_id)
-        self.redirect("/maps/"+map_id+"?player_id="+player_id)
+        self.redirect("/maps/"+str(map_id)+"?player_id="+str(player_id))
 
 
 class GetGame(tornado.web.RequestHandler):
