@@ -39,7 +39,7 @@ import database
 # c.connect()
 # sub_handler = MultiSub(c)
 
-redis_host = '192.241.172.212'
+redis_host = 'localhost'
 d = tornadoredis.Client(host=redis_host)
 d.connect()
 
