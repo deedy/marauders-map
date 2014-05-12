@@ -104,6 +104,7 @@ class LocationUpdater(tornado.web.RequestHandler):
 
 class MessageHandler(tornado.websocket.WebSocketHandler):
 	def open(self, map_id):
+		print "new socket connection"
 		self.map_id = map_id
 		self.channel_name = 'maps:%s:location_updates' % self.map_id
 		# sub_handler.subscribe(self.channel_name, self)
