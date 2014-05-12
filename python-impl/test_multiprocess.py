@@ -73,8 +73,8 @@ class TestClient(Process):
 		start_barrier.wait()
 		# fire random updates
 		for i in range(num_loc_updates):
-			lat = randint(1, 90)
-			lng = randint(1, 90)
+			lat = randint(1, 50)
+			lng = randint(-90, 1)
 			player_update_url = 'http://%s/maps/%s/update_player' % (self.host_name, self.map_id)
 			update_data = {'player_id' : self.player_id, 'lat' : lat, 'lng' : lng}
 			r = requests.post(player_update_url, data = update_data)

@@ -39,7 +39,8 @@ import database
 # c.connect()
 # sub_handler = MultiSub(c)
 
-d = tornadoredis.Client()
+redis_host = 'localhost'
+d = tornadoredis.Client(host=redis_host)
 d.connect()
 
 def publish_location_update(map_id, player_info):

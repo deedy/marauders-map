@@ -1,0 +1,572 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+        <title>{{ tornadovars['map_name']}} - Marauder</title>
+        <meta name="generator" content="Bootply" />
+        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+        <link href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css" rel="stylesheet">
+        <link href="../font-awesome/css/font-awesome.min.css" type="text/css" rel="stylesheet">
+        <link href="../css/bootstrap-select.min.css" type="text/css" rel="stylesheet">
+
+
+        <!--[if lt IE 9]>
+          <script src="//html5shim.googlecode.com/svn/trunk/html5.js"></script>
+        <![endif]-->
+
+
+
+
+
+
+
+
+
+
+
+        <style type="text/css">
+            /*
+ * Style tweaks
+ * --------------------------------------------------
+ */
+ html,body{
+height:100%;
+}
+.container-fluid {
+    margin: 0 auto;
+    height: 100%;
+
+    -moz-box-sizing: border-box;
+    -webkit-box-sizing: border-box;
+    box-sizing: border-box;
+}
+
+.columns {
+    background-color: #C9E6FF;
+    height: 100%;
+}
+
+.content-area, .article-tree{
+    background: #bada55;
+    overflow:auto;
+    height: 100%;
+}
+
+.footer {
+    background: red;
+    height: 20px;
+}
+body {
+  padding-top: 50px;
+  background-color: #f5f5f5;
+}
+footer {
+  padding-left: 15px;
+  padding-right: 15px;
+  background-color: #fff;
+}
+
+/*
+ * Off Canvas
+ * --------------------------------------------------
+ */
+@media screen and (max-width: 768px) {
+  .row-offcanvas {
+    position: relative;
+    -webkit-transition: all 0.25s ease-out;
+    -moz-transition: all 0.25s ease-out;
+    transition: all 0.25s ease-out;
+  }
+
+  .row-offcanvas-left
+  .sidebar-offcanvas {
+    left: -33%;
+  }
+
+  .row-offcanvas-left.active {
+    left: 33%;
+  }
+
+  .sidebar-offcanvas {
+    position: absolute;
+    top: 0;
+    width: 33%;
+    margin-left: 10px;
+  }
+
+  .debug-panel {
+    display: none;
+  }
+
+  .navbar-brand.created-tag {
+    display: none;
+  }
+}
+
+
+/* Sidebar navigation */
+.nav-sidebar {
+  background-color: #f5f5f5;
+  margin-right: -15px;
+  margin-bottom: 20px;
+  margin-left: -15px;
+}
+.nav-sidebar > li > a {
+  padding-right: 20px;
+  padding-left: 20px;
+}
+.nav-sidebar > .active > a {
+  color: #fff;
+  background-color: #428bca;
+}
+
+.nav-sidebar > .active > a:hover {
+  color: #fff;
+  background-color: #539bca;
+}
+
+/*
+ * Main content
+ */
+
+.main {
+  padding: 20px;
+  background-color: #fff;
+  margin-left: auto;
+  margin-right: auto;
+  max-width: initial;
+  height: 100%;
+}
+@media (min-width: 768px) {
+  .main {
+    padding-right: 40px;
+    padding-left: 40px;
+  }
+}
+.main .page-header {
+  margin-top: 0;
+}
+.created-tag {
+  font-size: 9px;
+  color: #ccc!important;
+  width: 200px;
+  display: inline-block;
+  margin-left: 5px;
+  padding-top: 20px;
+}
+.row {
+  height: 100%;
+  }
+
+
+.small-updated-text {
+  font-size: 9px;
+  color: #ccc!important;
+  display: inline-block;
+  margin-left: 5px;
+}
+.nav-location {
+  list-style-type: none;
+}
+
+.nav-location > li {
+  padding: 4px;
+}
+
+.marker-text {
+  text-align: center;
+  width: 150px;
+  font-size: 14px;
+  font-weight: bold;
+  color: #428bca ;
+}
+
+.main-icon {
+  width: 48px;
+  display: inline-block;
+  float:left;
+}
+
+.map-selector {
+  padding: 10px;
+}
+
+.debugger-heading {
+  background-color: rgb(217, 83, 79);
+  color: #fefefe;
+  padding: 10px;
+  padding-left: 20px;
+}
+
+.debugger {
+  background-color: rgb(247, 116, 112);
+  text-align: center;
+}
+
+.debug-panel {
+  margin-bottom: 0!important;
+  width: 240px;
+  background-color: rgb(247, 116, 112);
+  position: fixed;
+  bottom: 0;
+  right: 0;
+  z-index: 1000;
+}
+
+.debug-element {
+  padding: 10px;
+}
+
+.debug-flush {
+  width: 80%;
+}
+.debug-simulate {
+  width: 80%;
+}
+
+#sidebar {
+  height: 100%;
+  overflow: scroll;
+}
+
+.logged-in {
+  color: #fefefe;
+  font-size: 14px;
+  width: 200px;
+}
+  </style>
+    </head>
+
+
+    <body  >
+
+        <nav class="navbar navbar-inverse navbar-fixed-top" role="navigation">
+      <div class="container-fluid">
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target=".navbar-collapse">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <img class="main-icon" src="../img/logo.svg">
+          <a class="navbar-brand" href="#">{{ tornadovars['map_name'] }}</a>
+          <span class="navbar-brand created-tag">Created:  {{ tornadovars['map_created'] }}</span>
+        </div>
+
+        <!-- <select class="selectpicker" data-style="btn-info">
+          {% for map in all_maps %}
+            <option id="{{map['map_id']}}"><a href="maps/{{map['map_id']}}">{{map['map_name']}}</a></option>
+          {% end for %}
+        </select> -->
+        <div class="navbar-collapse navbar-right collapse">
+          <div class="btn-group map-selector">
+            <button type="button" class="btn btn-info btn-sm dropdown-toggle" data-toggle="dropdown">
+              {{tornadovars['map_name']}}
+              <span class="caret"></span>
+            </button>
+            <ul class="dropdown-menu">
+              {% for map in all_maps %}
+                {% if not str(map['map_id']) == tornadovars['map_id'] %}
+                  {% if player_id == -1 %}
+                      <li><a href="/maps/{{map['map_id']}}">{{map['map_name']}}</a></li>
+                  {% else %}
+                     <li><a href="/maps/{{map['map_id']}}?player_id={{player_id}}">{{map['map_name']}}</a></li>
+                  {% end if %}
+
+                {% end if %}
+              {% end for %}
+            </ul>
+          </div>
+          <div class="btn-group logged-in">
+            {% if not player_id == -1 %}
+                <span class="logged-in">Logged in as  {{player_details[player_id]['info']['player_name']}}</span>
+            {% else %}
+                <span class="logged-in">Not logged in</span>
+            {% end if %}
+          </div>
+          <div class="btn-group">
+            <button type="button" class="sign-out btn btn-danger btn-sm" data-toggle="dropdown">
+              <i class="fa fa-sign-out"></i>
+          </div>
+        </div>
+        <!-- <div class="navbar-collapse collapse">
+          <ul class="nav navbar-nav navbar-right">
+            <li><a href="#">Dashboard</a></li>
+            <li><a href="#">Settings</a></li>
+            <li><a href="#">Profile</a></li>
+            <li><a href="#">Help</a></li>
+          </ul>
+          <form class="navbar-form navbar-right">
+            <input type="text" class="form-control" placeholder="Search...">
+          </form> -->
+        </div>
+      </div>
+</nav>
+
+<div class="container-fluid">
+
+      <div class="row row-offcanvas row-offcanvas-left">
+
+         <div class="col-sm-3 col-md-2 sidebar-offcanvas" id="sidebar" role="navigation">
+            <br>
+            <ul class="nav nav-sidebar">
+              {% for player in player_details %}
+                <li class="active">
+                  <a id="sidebar-player-{{player_details[player]['id']}}">{{player_details[player]['info']['player_name']}}<div class="small-updated-text">Last updated {{player_details[player]['last_updated_string']}}</div>
+                  </a>
+                  <ul class="nav-location">
+                  {% for location in player_details[player]['locations'][:5] %}
+                    <li>{{"("+"{0:.5f}".format(location['lat'])+" , "+"{0:.5f}".format(location['lng'])+")"}}</li>
+                  {% end for %}
+                  </ul>
+
+                </li>
+              {% end for %}
+            </ul>
+            <ul class="debug-panel nav nav-sidebar">
+              <li class="debugger">
+                <div class="debugger-heading">Debug Console</div>
+                <select class="selectpicker debug-picker debug-element " data-style="btn-danger">
+                  {% for player in player_details %}
+                    <option id="{{player_details[player]['id']}}">{{player_details[player]['info']['player_name']}}</option>
+                  {% end for %}
+                </select>
+                <div class="debug-element">
+                  <button type="button" class="debug-flush btn btn-danger">Flush All</button>
+                </div>
+                <div class="debug-element">
+                  <button type="button" class="debug-simulate btn disabled btn-danger">Simulate</button>
+                </div>
+              </li>
+            </ul>
+
+        </div><!--/span-->
+
+        <div id="map_canvas" class="col-sm-9 col-md-10 main full-height">
+
+        </div>
+      </div>
+    </div>
+
+
+
+        <script src="../js/vendor/jquery.min.js"></script>
+
+        <script type='text/javascript' src="//netdna.bootstrapcdn.com/bootstrap/3.1.1/js/bootstrap.min.js"></script>
+
+        <script src="https://maps.googleapis.com/maps/api/js?v=3.exp&sensor=false"></script>
+        <script src="../js/vendor/markerwithlabel2.js"></script>
+        <script src="../js/vendor/bootstrap-select.min.js"></script>
+
+
+
+
+
+        <script type='text/javascript'>
+            $('.debug-flush').click(function() {
+              $.ajax({
+                type: "POST",
+                url: "/flush"
+              });
+            });
+            $('.debug-simulate').click(function() {
+              var debug_player_id = $(".debug-picker option:selected").attr("id");
+              $.ajax({
+                type: "POST",
+                url: "/simulate",
+                data: {"player_id": debug_player_id}
+              });
+            });
+            $('.sign-out').click(function() {
+              document.location.href="/";
+            });
+            $(document).ready(function() {
+              $('.selectpicker').selectpicker('render');
+              $('[data-toggle=offcanvas]').click(function() {
+                $('.row-offcanvas').toggleClass('active');
+              });
+            });
+
+
+            var globals = {
+              players : {},
+              player_list : [],
+              map_list : [],
+              current_player_id : -1,
+              current_map_id : -1,
+              socket : undefined,
+              atlas : undefined,
+              click_listener : undefined,
+              tails: {}
+            };
+
+            function initializeMap() {
+              globals.current_map_id = {{tornadovars['map_id']}};
+              {% if not player_id == -1 %}
+                globals.current_player_id = {{player_id}}
+              {% end if %}
+
+              var mapOptions = {
+                zoom: 17,
+                // center: new google.maps.LatLng(42.447909, -76.477998)
+                center: new google.maps.LatLng({{tornadovars['center_lat']}}, {{tornadovars['center_lng'] }}),
+                mapTypeId: google.maps.MapTypeId.ROADMAP,
+                mapTypeControl: false
+              };
+              globals.atlas = new google.maps.Map(
+                document.getElementById('map_canvas'),
+                mapOptions
+              );
+              player_details = {% raw str(player_details) %};
+              for (player in player_details) {
+                addPlayer(player_details[player])
+              }
+
+              enableSockets();
+            }
+
+            function enableSockets() {
+              if (!(typeof globals.socket === 'undefined')) {
+                globals.socket.close();
+              }
+              globals.socket = new WebSocket("ws:" + window.location.host + "/maps/" + globals.current_map_id + "/channel");
+              globals.socket.onmessage = function (evt) {
+                handleMessage(evt.data);
+              }
+              google.maps.event.removeListener(globals.click_listener);
+              globals.click_listener = google.maps.event.addListener(globals.atlas, 'click', function(event) {
+                sendMessage(event.latLng);
+              });
+            }
+
+            function sendMessage(loc) {
+              var url = "/update_player";
+              var debug_player_id = $(".debug-picker option:selected").attr("id");
+              var data = {
+                "player_id" : debug_player_id,
+                "lat" : loc.lat(),
+                "lng" : loc.lng()
+              };
+              $.ajax({
+                type: "POST",
+                url: url,
+                data: data
+              });
+            }
+
+            function handleMessage(input) {
+              console.log("received: " + input);
+              var data = JSON.parse(input);
+              updatePlayer(data);
+            }
+
+            window.onbeforeunload = function() {
+              globals.socket.onclose = function () {};
+              globals.socket.close();
+            };
+
+            function updatePlayer(player_info) {
+              if (player_info.hasOwnProperty('CLEAR')) {
+                window.location.reload();
+              }
+              var player_id = player_info["player_id"];
+              if (globals.players.hasOwnProperty(player_id)) {
+                var lat = player_info["player_tail"][0]["lat"];
+                var lng = player_info["player_tail"][0]["lng"];
+                var location = new google.maps.LatLng(lat, lng);
+                globals.players[player_id]["marker"].setPosition(location);
+                globals.players[player_id]["tail"].getPath().push(location);
+
+                var updated_text = player_info["last_updated_string"];
+                $('#sidebar-player-'+player_id).find('.small-updated-text').text("Last updated "+updated_text);
+                var coordinates = "("+parseFloat(lat).toFixed(5)+" , "+parseFloat(lng).toFixed(5)+")"
+                $('#sidebar-player-'+player_id).parent().find('.nav-location').prepend("<li>"+coordinates+"</li>");
+              }
+            }
+
+            function addPlayer(player_details_all) {
+              var player_id = player_details_all["id"];
+              var player_name = player_details_all["info"]["player_name"];
+              var lat = player_details_all["locations"][0]["lat"];
+              var lng = player_details_all["locations"][0]["lng"];
+              var points = [];
+              for (ind in player_details_all["locations"]) {
+                points.push(player_details_all["locations"][ind]);
+              }
+              var tail = createPolyline(points);
+              console.log(player_id+"\t"+lat+","+lng);
+              var location = new google.maps.LatLng(lat, lng);
+              var image32 = {
+                url: '../img/marker-32px.png',
+                size: new google.maps.Size(32, 32),
+                origin: new google.maps.Point(0,0),
+                anchor: new google.maps.Point(16, 16)
+              };
+              var image16 = {
+                url: '../img/marker-16px.png',
+                size: new google.maps.Size(16, 16),
+                origin: new google.maps.Point(0,0),
+                anchor: new google.maps.Point(8, 8)
+              };
+              var circle = circle = new google.maps.Circle({
+                  map: globals.atlas,
+                  clickable: false,
+                  // metres
+                  radius: 50,
+                  fillColor: '#1B73FA',
+                  fillOpacity: .1,
+                  strokeColor: '#1B73FA',
+                  strokeOpacity: .5,
+                  strokeWeight: 1.0
+              });
+              var marker = new MarkerWithLabel({
+                position: location,
+                map: globals.atlas,
+                title: player_name,
+                icon: image16,
+                zIndex: 10,
+                labelContent: player_name,
+                labelAnchor: new google.maps.Point(75, 30),
+                labelClass:"marker-text"
+              });
+
+              circle.bindTo('center', marker, 'position');
+              globals.players[player_id] = player_details_all;
+              globals.players[player_id]["marker"] = marker;
+              globals.players[player_id]["tail"] = tail;
+              // globals.player_list.push(player_details_all);
+            }
+
+
+            function createPolyline(points) {
+              var path = [];
+              for (p in points) {
+                path.unshift(new google.maps.LatLng(points[p]["lat"],points[p]["lng"]));
+              }
+              console.log(path);
+              var path_handle = new google.maps.Polyline({
+                path: path,
+                geodesic: true,
+                strokeColor: '#1B73FA',
+                strokeOpacity: 0.5,
+                strokeWeight: 1,
+                map: globals.atlas
+              });
+              return path_handle;
+            }
+
+
+            google.maps.event.addDomListener(window, 'load', initializeMap);
+
+        </script>
+
+    </body>
+</html>
+<!--
+FIX FLUSH
+2. concept of self ->
+1. create new maps ->
+3. leaving and joining
+5. post request handling
+ -->
