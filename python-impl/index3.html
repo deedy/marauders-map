@@ -418,7 +418,7 @@ footer {
                 document.getElementById('map_canvas'),
                 mapOptions
               );
-              player_details = {{player_details}}
+              player_details = {% raw str(player_details) %};
               for (player in player_details) {
                 addPlayer(player_details[player])
               }
