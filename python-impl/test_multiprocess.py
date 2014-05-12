@@ -8,7 +8,7 @@ from collections import defaultdict
 import json
 from sys import argv
 
-num_threads = 10
+num_threads = 100
 num_loc_updates = 100
 
 host = "localhost"
