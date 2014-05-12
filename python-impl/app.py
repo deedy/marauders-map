@@ -104,7 +104,6 @@ class LocationUpdater(tornado.web.RequestHandler):
 
 class MessageHandler(tornado.websocket.WebSocketHandler):
 	def open(self, map_id):
-		print "new socket connection"
 		self.map_id = map_id
 		self.channel_name = 'maps:%s:location_updates' % self.map_id
 		# sub_handler.subscribe(self.channel_name, self)
@@ -122,7 +121,6 @@ class MessageHandler(tornado.websocket.WebSocketHandler):
 	def pubsub_message(self, msg):
 		if msg.kind == 'message':
 			self.write_message(str(msg.body))
-			print "writing to socket"
 		if msg.kind == 'disconnect':
 			self.close()
 
@@ -131,7 +129,6 @@ class MessageHandler(tornado.websocket.WebSocketHandler):
 
 	def on_close(self):
 		# sub_handler.unsubscribe(self.channel_name, self)
-		print "socket closing"
 		if self.client.subscribed:
 			self.client.unsubscribe(self.channel_name)
 			self.client.disconnect()
