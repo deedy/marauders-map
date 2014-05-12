@@ -122,6 +122,7 @@ class MessageHandler(tornado.websocket.WebSocketHandler):
 	def pubsub_message(self, msg):
 		if msg.kind == 'message':
 			self.write_message(str(msg.body))
+			print "writing to socket"
 		if msg.kind == 'disconnect':
 			self.close()
 
@@ -130,6 +131,7 @@ class MessageHandler(tornado.websocket.WebSocketHandler):
 
 	def on_close(self):
 		# sub_handler.unsubscribe(self.channel_name, self)
+		print "socket closing"
 		if self.client.subscribed:
 			self.client.unsubscribe(self.channel_name)
 			self.client.disconnect()
