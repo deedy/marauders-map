@@ -1,5 +1,5 @@
 import redis
-redis_host = 'localhost'
+redis_host = '192.241.172.212'
 r = redis.Redis(host=redis_host)
 
 map_fields = ["map_id", "map_name"]
